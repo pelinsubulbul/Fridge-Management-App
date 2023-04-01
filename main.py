@@ -3,12 +3,19 @@ from tkinter import ttk, messagebox
 import sqlite3
 from datetime import datetime
 from tkcalendar import DateEntry
+from flask_wtf import FlaskForm
+from wtforms import StringField, IntegerField, DateField, SubmitField
+from wtforms.validators import DataRequired, NumberRange
+
+
 
 # Database setup
 conn = sqlite3.connect('fridge.db')
 c = conn.cursor()
 c.execute(
     '''CREATE TABLE IF NOT EXISTS groceries (id INTEGER PRIMARY KEY, item TEXT, quantity INTEGER, date_added TEXT, expiration_date TEXT)''')
+c.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT)''')
+
 conn.commit()
 conn.close()
 
@@ -33,9 +40,16 @@ def execute_query(query, *params):
         conn.commit()
 
 
+
+class GroceryForm(FlaskForm):
+    item = StringField('Item', validators=[DataRequired()])
+    quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1, max=20)])
+    expiration_date = DateField('Expiration Date', format='%Y-%m-%d', validators=[DataRequired()])
+    submit = SubmitField('Add')
+
 def update_treeview():
     grocery_tree.delete(*grocery_tree.get_children())
-    rows = execute_query("SELECT * FROM groceries")
+    rows = execute_query("SELECT * FROM groceries ORDER BY expiration_date ASC")
     for row in rows:
         grocery_tree.insert("", tk.END, values=row)
 
@@ -131,6 +145,10 @@ def update_view():
     update_treeview()
 
 
+
+
+
+
 # GUI setup
 root = tk.Tk()
 root.title("Fridge Management")
@@ -148,42 +166,37 @@ root.configure(bg=color3)
 # Make the app full size
 root.state('zoomed')
 
-# Setting up the label for the item and quantity text
-item_text = tk.StringVar()
-e1 = ttk.Entry(root, textvariable=item_text, font=("Arial", 14))
-e1.grid(row=0, column=1, sticky=tk.W, pady=10, padx=10)
 
 # Use a Combobox for quantity selection
 quantity_text = tk.StringVar()
 quantity_options = list(range(1, 21))
 e2 = ttk.Combobox(root, textvariable=quantity_text, values=quantity_options, state="readonly", font=("Arial", 14))
-e2.grid(row=0, column=3, sticky=tk.W, pady=10, padx=10)
+e2.grid(row=2, column=1, sticky=tk.W, pady=10, padx=10)
 e2.set(quantity_options[0])
 
 # Setting up the label for the expiration date text
 
 
-cal = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, year=2022)
-cal.grid(row=4, column=3, sticky=tk.W, padx=20, pady=10)
+cal = DateEntry(root, width=35, background='darkblue', foreground='white', borderwidth=2, year=2022)
+cal.grid(row=3, column=1, sticky=tk.W, padx=20, pady=10)
 
-ttk.Label(root, text="Item", background=color3, foreground=color4, font=('Arial Bold', 15)).grid(row=0, column=0,
+ttk.Label(root, text="Item", background=color3, foreground=color4, font=('Arial Bold', 13)).grid(row=1, column=0,
                                                                                                  padx=20, pady=10)
 item_text = tk.StringVar()
 e1 = ttk.Entry(root, textvariable=item_text, font=("Arial", 14))
-e1.grid(row=0, column=1, sticky=tk.W, pady=10, padx=10)
+e1.grid(row=1, column=1, sticky=tk.W, pady=10, padx=10)
 
-ttk.Label(root, text="Quantity", background=color3, foreground=color4, font=('Arial Bold', 15)).grid(row=0, column=2,
+ttk.Label(root, text="Quantity", background=color3, foreground=color4, font=('Arial Bold', 13)).grid(row=2, column=0,
                                                                                                      padx=20, pady=10)
 
-ttk.Label(root, text="Expiration Date", background=color3, foreground=color4, font=('Arial Bold', 15)).grid(row=1,
-                                                                                                            column=0,
-                                                                                                            padx=20,
+ttk.Label(root, text="Expiration Date", background=color3, foreground=color4, font=('Arial Bold', 13)).grid(row=3,
+                                                                                                            column=0,                                                                                                        padx=20,
                                                                                                             pady=10)
 
 grocery_tree = ttk.Treeview(root)
-grocery_tree.grid(row=2, column=0, rowspan=6, columnspan=2, sticky=tk.NSEW, pady=10, padx=20)
+grocery_tree.grid(row=1, column=2, rowspan=6, sticky=tk.NSEW, pady=10, padx=20)
 sb1 = ttk.Scrollbar(root, orient="vertical", command=grocery_tree.yview)
-sb1.grid(row=2, column=2, rowspan=6, sticky=tk.NS, pady=10)
+sb1.grid(row=1, column=3, rowspan=6, sticky=tk.NS, pady=10)
 
 grocery_tree.configure(yscrollcommand=sb1.set)
 
@@ -196,12 +209,14 @@ grocery_tree.heading("date_added", text="Date Added")
 grocery_tree.heading("expiration_date", text="Expiration Date")
 
 add_button = ttk.Button(root, text="Add", command=add_command)
-add_button.grid(row=8, column=0, pady=10, padx=10)
+add_button.grid(row=5, column=0)
 
 update_button = ttk.Button(root, text="Update", command=update_command, state="disabled")
 delete_button = ttk.Button(root, text="Delete", command=delete_command, state="disabled")
-update_button.grid(row=8, column=1, pady=10, padx=10)
-delete_button.grid(row=8, column=2, pady=10, padx=10)
+update_button.grid(row=6, column=0)
+delete_button.grid(row=7, column=0)
+
+
 
 
 def on_select(event):
