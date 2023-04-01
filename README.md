@@ -12,7 +12,7 @@ Flask WTF Forms
 SQLite
 Tkinter for GUI
 Installation
-Clone the repository: git clone https://github.com/pelinsubulbul/FridgeBuddy.git
+Clone the repository: git clone https://github.com/pelinsubulbul/Fridge-Management-App.git
 Install the required dependencies: pip install -r requirements.txt
 Run the app: python app.py
 Usage
