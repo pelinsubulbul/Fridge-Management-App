@@ -19,4 +19,4 @@ Usage
 Launch the app by running app.py.
 Add, update, or delete items in your fridge using the GUI.
 Credits
-Developed by [Pelinsu Bulbul]
+Developed by Pelinsu Bulbul
